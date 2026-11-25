@@ -78,9 +78,9 @@
     .char-wrong { background: #ffcdd2; color: var(--danger); text-decoration: underline; }
     textarea, input, select {
       width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px;
-      font-size: 0.95rem; margin-top: 4px;
+      font-size: 0.92rem; margin-top: 4px; background: #fff;
     }
-    textarea:focus, input:focus { outline: none; border-color: var(--orange); }
+    textarea:focus, input:focus, select:focus { outline: none; border-color: var(--orange); }
     .metrics { display: flex; gap: 16px; margin: 14px 0; flex-wrap: wrap; }
     .metric-card {
       background: var(--cream); border: 1px solid var(--border); border-radius: 8px;
@@ -97,15 +97,16 @@
     .btn-secondary { background: var(--brown); }
     .btn-danger { background: var(--danger); }
 
-    /* Módulo 2 & 3: Formulário e Ficha Referência */
+    /* Grids e Formulários */
     .grid-2 { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; }
-    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 850px) { .grid-2, .grid-4 { grid-template-columns: 1fr; } }
     .ref-card {
       background: var(--cream); border: 1px dashed var(--orange); padding: 16px;
       border-radius: 8px; font-size: 0.9rem; line-height: 1.6;
     }
     .form-group { margin-bottom: 12px; }
-    label { font-size: 0.85rem; font-weight: 600; color: var(--brown); }
+    label { font-size: 0.83rem; font-weight: 600; color: var(--brown); }
     .feedback-box { margin-top: 14px; padding: 12px; border-radius: 6px; font-size: 0.9rem; display: none; }
 
     /* Pop-up de Distração Controlada */
@@ -121,15 +122,30 @@
       75% { transform: translateX(6px); }
     }
 
-    /* Módulo 3: E-mail */
+    /* Módulo 3: E-mail & Automação */
+    .inbox-selector {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .inbox-btn {
+      background: #fff; border: 1px solid var(--border); color: var(--brown);
+      padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+    .inbox-btn.active {
+      background: var(--brown); color: #fff; border-color: var(--brown);
+    }
     .email-incoming {
       background: #f9f9f9; border: 1px solid var(--border); padding: 14px;
       border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; line-height: 1.5;
     }
-    .templates-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px 0; }
+    .auto-panel {
+      background: var(--cream); border: 1px solid var(--border); padding: 14px;
+      border-radius: 8px; margin-bottom: 14px;
+    }
+    .templates-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
     .templates-bar button {
-      background: var(--cream); border: 1px solid var(--orange); color: var(--brown);
-      padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      background: #fff; border: 1px solid var(--orange); color: var(--brown);
+      padding: 7px 13px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      transition: 0.2s;
     }
     .templates-bar button:hover {
       background: var(--orange); color: #fff;
@@ -140,6 +156,7 @@
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 8px;
+      display: none;
     }
     .email-signature-preview img {
       max-width: 100%;
@@ -245,40 +262,81 @@
   <!-- MÓDULO 3 -->
   <section id="mod3" class="tab">
     <h2>Módulo 3: Resposta a E-mails e Revisão Ativa</h2>
-    <div class="email-incoming">
-      <strong>De:</strong> catarina.mendes@email.pt &nbsp;|&nbsp; <strong>Assunto:</strong> Inscrição na Creche Canina — Luna<br><br>
-      "Bom dia! Acabei de submeter a inscrição da minha cadela <strong>Luna (Golden Retriever)</strong> para frequentar a creche às <strong>segundas, quartas e sextas-feiras</strong>, com início no dia <strong>14/12/2026</strong>. Aguardo confirmação e indicação dos documentos necessários. Obrigada, <strong>Catarina Mendes</strong>."
+
+    <label>1. Selecione o E-mail Recebido na Caixa de Entrada:</label>
+    <div class="inbox-selector">
+      <button type="button" class="inbox-btn active" onclick="selectIncomingEmail(0, this)">📩 Catarina Mendes (Luna)</button>
+      <button type="button" class="inbox-btn" onclick="selectIncomingEmail(1, this)">📩 Diogo Ferreira (Max)</button>
+      <button type="button" class="inbox-btn" onclick="selectIncomingEmail(2, this)">📩 Sofia Carvalho (Mel)</button>
     </div>
 
-    <label>Atalhos de Resposta Rápida (Módulo 1):</label>
-    <div class="templates-bar">
-      <button type="button" onclick="insertTemplate('modelo_completo')">+ Inserir Modelo de Confirmação de Inscrição</button>
-      <button type="button" onclick="clearEmail()">Limpar Campos</button>
+    <div id="incoming-box" class="email-incoming"></div>
+
+    <!-- Painel de Automatização Rápida -->
+    <div class="auto-panel">
+      <strong style="color: var(--brown); font-size: 0.9rem;">⚡ Preenchimento Rápido da Resposta (Selecione os dados conforme o e-mail acima):</strong>
+      <div class="grid-4" style="margin-top: 8px;">
+        <div>
+          <label>Tutor(a):</label>
+          <select id="sel-tutor">
+            <option value="">-- Selecionar --</option>
+            <option value="Catarina Mendes">Catarina Mendes</option>
+            <option value="Diogo Ferreira">Diogo Ferreira</option>
+            <option value="Sofia Carvalho">Sofia Carvalho</option>
+          </select>
+        </div>
+        <div>
+          <label>Nome do Pet:</label>
+          <select id="sel-pet">
+            <option value="">-- Selecionar --</option>
+            <option value="Luna">Luna</option>
+            <option value="Max">Max</option>
+            <option value="Mel">Mel</option>
+          </select>
+        </div>
+        <div>
+          <label>Data do 1.º Dia:</label>
+          <input type="date" id="sel-date" value="2026-12-14">
+        </div>
+        <div>
+          <label>Assinatura (Colaborador):</label>
+          <select id="sel-staff">
+            <option value="Maria Rita Reis | Assistente de Atendimento e Receção">Maria Rita Reis (Receção)</option>
+            <option value="Flávia Ferraz | Coordenadora de Atendimento e Operações">Flávia Ferraz (Coordenação)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="templates-bar">
+        <button type="button" onclick="generateAutomatedEmail()">✨ Gerar Texto Automático</button>
+        <button type="button" onclick="addSignatureBlock()">✍️ Acrescentar Assinatura (Cargo + Banner)</button>
+        <button type="button" onclick="clearEmail()">Limpar</button>
+      </div>
     </div>
 
     <div class="form-group">
       <label>Para:</label>
-      <input type="text" value="catarina.mendes@email.pt" readonly style="background:#f4f4f4;">
+      <input type="text" id="email-to" readonly style="background:#f4f4f4;">
     </div>
 
     <div class="form-group">
-      <label>Assunto (Substitua [Nome do Pet] pelo nome correto):</label>
-      <input type="text" id="email-subject" placeholder="Ex: Bem-vindos à família Happy Tails! Confirmação de inscrição de ...">
+      <label>Assunto:</label>
+      <input type="text" id="email-subject" placeholder="O assunto será gerado automaticamente ou pode editá-lo aqui...">
     </div>
 
     <div class="form-group">
-      <label>Corpo do E-mail (Preencha todos os campos entre parênteses retos [...] e revise antes de enviar):</label>
-      <textarea id="email-body" rows="10" placeholder="Clique no botão acima para carregar o modelo e preencha os dados da Catarina e da Luna..."></textarea>
+      <label>Corpo do E-mail:</label>
+      <textarea id="email-body" rows="8" placeholder="Selecione os dados acima e clique em 'Gerar Texto Automático'..."></textarea>
     </div>
 
-    <div class="email-signature-preview">
-      <span style="font-size: 0.78rem; color: var(--brown); font-weight: 600; display: block; margin-bottom: 6px;">Assinatura Institucional Anexada Automaticamente:</span>
+    <div id="sig-preview" class="email-signature-preview">
+      <span style="font-size: 0.78rem; color: var(--brown); font-weight: 600; display: block; margin-bottom: 6px;">Assinatura Visual Anexada:</span>
       <img src="assets/assinatura_happy_tails.png" alt="Assinatura Happy Tails — Creche Canina Inteligente">
     </div>
 
     <div style="margin: 14px 0; font-size: 0.88rem;">
       <input type="checkbox" id="chk-review" style="width:auto;">
-      <label for="chk-review">Confirmo que realizei a <strong>Revisão Ativa</strong> (substituí todos os campos [Nome do Pet], [Nome do Tutor], [DD/MM/AAAA], [Nome do Colaborador] e [Cargo]).</label>
+      <label for="chk-review">Confirmo que realizei a <strong>Revisão Ativa</strong> (conferi nome do tutor, nome do cão, data de início e assinatura anexada).</label>
     </div>
 
     <button class="btn" onclick="sendEmail()">Enviar Resposta Oficial</button>
@@ -442,21 +500,81 @@
     }
   }
 
-  // --- MÓDULO 3: E-MAIL ---
-  function insertTemplate(type) {
-    if (type === 'modelo_completo') {
-      document.getElementById('email-subject').value = "Bem-vindos à família Happy Tails! Confirmação de inscrição de [Nome do Pet]";
-      document.getElementById('email-body').value =
-`Estimado(a) [Nome do Tutor],
-
-É com enorme entusiasmo que confirmamos a inscrição do(a) [Nome do Pet] na Happy Tails Smart, Lda. A nossa equipa está preparada para lhe proporcionar dias seguros, estimulantes e repletos de carinho.
-
-Para concluirmos o processo antes do primeiro dia ([DD/MM/AAAA]), solicitamos que nos envie em resposta a este e-mail o Boletim Sanitário atualizado (vacinas e desparasitação) e confirme o horário previsto de chegada.
-
-Com os melhores cumprimentos,
-
-[Nome do Colaborador] | [Cargo]`;
+  // --- MÓDULO 3: E-MAILS DINÂMICOS & AUTOMATIZAÇÃO ---
+  const incomingEmails = [
+    {
+      from: "catarina.mendes@email.pt",
+      tutor: "Catarina Mendes",
+      pet: "Luna",
+      dateISO: "2026-12-14",
+      datePT: "14/12/2026",
+      subject: "Inscrição na Creche Canina — Luna",
+      text: "Bom dia! Acabei de submeter a inscrição da minha cadela <strong>Luna (Golden Retriever)</strong> para frequentar a creche às <strong>segundas, quartas e sextas-feiras</strong>, com início no dia <strong>14/12/2026</strong>. Aguardo confirmação e indicação dos documentos necessários. Obrigada, <strong>Catarina Mendes</strong>."
+    },
+    {
+      from: "diogo.ferreira@email.pt",
+      tutor: "Diogo Ferreira",
+      pet: "Max",
+      dateISO: "2026-12-16",
+      datePT: "16/12/2026",
+      subject: "Inscrição Creche — Max (Bulldog Francês)",
+      text: "Olá equipa Happy Tails! Fiz agora a inscrição do <strong>Max</strong> para frequentar a creche às <strong>segundas, quartas e sextas-feiras</strong> a partir de <strong>16/12/2026</strong>. Que documentos devo enviar antes do primeiro dia? Cumprimentos, <strong>Diogo Ferreira</strong>."
+    },
+    {
+      from: "sofia.carvalho@email.pt",
+      tutor: "Sofia Carvalho",
+      pet: "Mel",
+      dateISO: "2026-12-21",
+      datePT: "21/12/2026",
+      subject: "Confirmação de Inscrição — Mel",
+      text: "Bom dia! Realizei a inscrição da minha cadela <strong>Mel (Cocker Spaniel)</strong> para o plano de <strong>segundas, quartas e sextas-feiras</strong>, começando no dia <strong>21/12/2026</strong>. Aguardo a vossa confirmação. Obrigada, <strong>Sofia Carvalho</strong>."
     }
+  ];
+
+  let currentEmailIndex = 0;
+
+  function selectIncomingEmail(idx, btn) {
+    currentEmailIndex = idx;
+    document.querySelectorAll('.inbox-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const mail = incomingEmails[idx];
+    document.getElementById('incoming-box').innerHTML =
+      `<strong>De:</strong> ${mail.from} &nbsp;|&nbsp; <strong>Assunto:</strong> ${mail.subject}<br><br>"${mail.text}"`;
+    document.getElementById('email-to').value = mail.from;
+    clearEmail();
+  }
+  selectIncomingEmail(0);
+
+  function formatDatePT(isoStr) {
+    if (!isoStr) return "[DD/MM/AAAA]";
+    const [y, m, d] = isoStr.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function generateAutomatedEmail() {
+    const tutor = document.getElementById('sel-tutor').value || "[Nome do Tutor]";
+    const pet = document.getElementById('sel-pet').value || "[Nome do Pet]";
+    const datePT = formatDatePT(document.getElementById('sel-date').value);
+
+    document.getElementById('email-subject').value = `Bem-vindos à família Happy Tails! Confirmação de inscrição de ${pet}`;
+    document.getElementById('email-body').value =
+`Estimado(a) ${tutor},
+
+É com enorme entusiasmo que confirmamos a inscrição do(a) ${pet} na Happy Tails Smart, Lda. A nossa equipa está preparada para lhe proporcionar dias seguros, estimulantes e repletos de carinho.
+
+Para concluirmos o processo antes do primeiro dia (${datePT}), solicitamos que nos envie em resposta a este e-mail o Boletim Sanitário atualizado (vacinas e desparasitação) e confirme o horário previsto de chegada.
+
+Com os melhores cumprimentos,`;
+  }
+
+  function addSignatureBlock() {
+    const staff = document.getElementById('sel-staff').value;
+    const bodyEl = document.getElementById('email-body');
+    if (!bodyEl.value.includes(staff)) {
+      bodyEl.value = bodyEl.value.trimEnd() + `\n\n${staff}`;
+    }
+    document.getElementById('sig-preview').style.display = "block";
   }
 
   function clearEmail() {
@@ -464,12 +582,15 @@ Com os melhores cumprimentos,
     document.getElementById('email-body').value = "";
     document.getElementById('chk-review').checked = false;
     document.getElementById('email-feedback').style.display = "none";
+    document.getElementById('sig-preview').style.display = "none";
   }
 
   function sendEmail() {
+    const expected = incomingEmails[currentEmailIndex];
     const subject = document.getElementById('email-subject').value.trim();
     const body = document.getElementById('email-body').value.trim();
     const reviewed = document.getElementById('chk-review').checked;
+    const sigVisible = document.getElementById('sig-preview').style.display === "block";
     const fb = document.getElementById('email-feedback');
     fb.style.display = "block";
 
@@ -477,17 +598,17 @@ Com os melhores cumprimentos,
     if (!reviewed) {
       errors.push("Assinale a caixa de Revisão Ativa antes de enviar o e-mail.");
     }
-    if (subject.includes("[") || subject.includes("]") || body.includes("[") || body.includes("]")) {
-      errors.push("Ainda existem campos por preencher entre parênteses retos (ex: [Nome do Pet], [Nome do Tutor], [DD/MM/AAAA]).");
+    if (subject.includes("[") || body.includes("[")) {
+      errors.push("Selecione o Tutor, o Pet e a Data nos menus acima antes de gerar o texto.");
     }
-    if (!subject.includes("Luna") || !subject.includes("Bem-vindos à família Happy Tails!")) {
-      errors.push("Verifique o Assunto: deve conter o título institucional e o nome 'Luna'.");
+    if (!subject.includes(expected.pet)) {
+      errors.push(`O Assunto não corresponde ao animal deste e-mail (deve ser "${expected.pet}").`);
     }
-    if (!body.includes("Catarina Mendes") || !body.includes("Luna") || !body.includes("14/12/2026")) {
-      errors.push("Verifique os dados no corpo do e-mail: 'Catarina Mendes', 'Luna' e a data '14/12/2026'.");
+    if (!body.includes(expected.tutor) || !body.includes(expected.pet) || !body.includes(expected.datePT)) {
+      errors.push(`Os dados no corpo do e-mail não coincidem com o pedido recebido (${expected.tutor}, ${expected.pet}, ${expected.datePT}).`);
     }
-    if (!body.includes("Maria Rita Reis")) {
-      errors.push("Inclua o seu nome completo ('Maria Rita Reis') e o cargo no fecho do e-mail.");
+    if (!sigVisible || (!body.includes("Maria Rita Reis") && !body.includes("Flávia Ferraz"))) {
+      errors.push("Clique em 'Acrescentar Assinatura' para incluir o seu nome, cargo e banner oficial.");
     }
 
     if (errors.length > 0) {
@@ -497,7 +618,7 @@ Com os melhores cumprimentos,
     }
 
     fb.style.background = "#e8f5e9"; fb.style.color = "#2e7d32";
-    fb.innerText = "✅ E-mail de confirmação de inscrição enviado com sucesso e validado sem erros!";
+    fb.innerText = `✅ E-mail para ${expected.tutor} (${expected.pet}) enviado com sucesso e validado sem erros!`;
     document.getElementById('rep-email').innerText = "Concluído";
   }
 </script>
