@@ -124,12 +124,29 @@
     /* Módulo 3: E-mail */
     .email-incoming {
       background: #f9f9f9; border: 1px solid var(--border); padding: 14px;
-      border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;
+      border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; line-height: 1.5;
     }
-    .templates-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .templates-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px 0; }
     .templates-bar button {
       background: var(--cream); border: 1px solid var(--orange); color: var(--brown);
-      padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .templates-bar button:hover {
+      background: var(--orange); color: #fff;
+    }
+    .email-signature-preview {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .email-signature-preview img {
+      max-width: 100%;
+      width: 650px;
+      height: auto;
+      display: block;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -229,29 +246,39 @@
   <section id="mod3" class="tab">
     <h2>Módulo 3: Resposta a E-mails e Revisão Ativa</h2>
     <div class="email-incoming">
-      <strong>De:</strong> catarina.mendes@email.pt &nbsp;|&nbsp; <strong>Assunto:</strong> Reserva Hotel Canino — Passagem de Ano<br><br>
-      "Bom dia! Gostaria de reservar estadia para a minha cadela <strong>Luna (Golden Retriever)</strong> de <strong>29/12/2026 a 03/01/2027</strong>. Ela tem o boletim de vacinas em dia e come ração própria. Têm vaga e qual o procedimento para confirmar? Obrigada, Catarina Mendes."
+      <strong>De:</strong> catarina.mendes@email.pt &nbsp;|&nbsp; <strong>Assunto:</strong> Pedido de Inscrição na Creche — Luna<br><br>
+      "Bom dia! Gostaria de concluir a inscrição da minha cadela <strong>Luna (Golden Retriever)</strong> para iniciar a creche no dia <strong>14/12/2026</strong>. Que documentos preciso de enviar antes do primeiro dia? Obrigada, <strong>Catarina Mendes</strong>."
     </div>
 
     <label>Atalhos de Resposta Rápida (Módulo 1):</label>
     <div class="templates-bar">
-      <button onclick="insertTemplate('saudacao')">+ Saudação Institucional</button>
-      <button onclick="insertTemplate('reserva')">+ Confirmação de Vaga & Requisitos</button>
-      <button onclick="insertTemplate('assinatura')">+ Assinatura Maria Rita</button>
+      <button type="button" onclick="insertTemplate('modelo_completo')">+ Inserir Modelo de Confirmação de Inscrição</button>
+      <button type="button" onclick="clearEmail()">Limpar Campos</button>
     </div>
 
     <div class="form-group">
       <label>Para:</label>
       <input type="text" value="catarina.mendes@email.pt" readonly style="background:#f4f4f4;">
     </div>
+
     <div class="form-group">
-      <label>Corpo do E-mail (Revise datas, nome da cadela e ortografia antes de enviar):</label>
-      <textarea id="email-body" rows="7" placeholder="Escreva ou utilize os botões de modelo rápido acima..."></textarea>
+      <label>Assunto (Substitua [Nome do Pet] pelo nome correto):</label>
+      <input type="text" id="email-subject" placeholder="Ex: Bem-vindos à família Happy Tails! Confirmação de inscrição de ...">
     </div>
 
-    <div style="margin: 10px 0; font-size: 0.88rem;">
+    <div class="form-group">
+      <label>Corpo do E-mail (Preencha todos os campos entre parênteses retos [...] e revise antes de enviar):</label>
+      <textarea id="email-body" rows="10" placeholder="Clique no botão acima para carregar o modelo e preencha os dados da Catarina e da Luna..."></textarea>
+    </div>
+
+    <div class="email-signature-preview">
+      <span style="font-size: 0.78rem; color: var(--brown); font-weight: 600; display: block; margin-bottom: 6px;">Assinatura Institucional Anexada Automaticamente:</span>
+      <img src="assets/assinatura_happy_tails.jpg" alt="Assinatura Happy Tails — Creche Canina Inteligente">
+    </div>
+
+    <div style="margin: 14px 0; font-size: 0.88rem;">
       <input type="checkbox" id="chk-review" style="width:auto;">
-      <label for="chk-review">Confirmo que realizei a <strong>Revisão Ativa</strong> (datas 29/12 a 03/01, nome Luna e ausência de gralhas).</label>
+      <label for="chk-review">Confirmo que realizei a <strong>Revisão Ativa</strong> (substituí todos os campos [Nome do Pet], [Nome do Tutor], [DD/MM/AAAA], [Nome do Colaborador] e [Cargo]).</label>
     </div>
 
     <button class="btn" onclick="sendEmail()">Enviar Resposta Oficial</button>
@@ -417,34 +444,60 @@
 
   // --- MÓDULO 3: E-MAIL ---
   function insertTemplate(type) {
-    const box = document.getElementById('email-body');
-    const templates = {
-      saudacao: "Bom dia, Exma. Sra. Catarina Mendes,\n\nAgradecemos o seu contacto com a Happy Tails Smart.\n\n",
-      reserva: "Confirmamos que temos disponibilidade de hotel para a Luna entre os dias 29/12/2026 e 03/01/2027. Para formalizar a reserva, pedimos que traga o boletim de vacinas atualizado e a ração habitual identificada com a dosagem diária.\n\n",
-      assinatura: "Com os melhores cumprimentos,\nMaria Rita Reis\nAtendimento e Receção | Happy Tails Smart, Lda.\nmaria.reis.teste@happytails.pt"
-    };
-    box.value += templates[type];
+    if (type === 'modelo_completo') {
+      document.getElementById('email-subject').value = "Bem-vindos à família Happy Tails! Confirmação de inscrição de [Nome do Pet]";
+      document.getElementById('email-body').value =
+`Estimado(a) [Nome do Tutor],
+
+É com enorme entusiasmo que confirmamos a inscrição do(a) [Nome do Pet] na Happy Tails Smart, Lda. A nossa equipa está preparada para lhe proporcionar dias seguros, estimulantes e repletos de carinho.
+
+Para concluirmos o processo antes do primeiro dia ([DD/MM/AAAA]), solicitamos que nos envie em resposta a este e-mail o Boletim Sanitário atualizado (vacinas e desparasitação) e confirme o horário previsto de chegada.
+
+Com os melhores cumprimentos,
+
+[Nome do Colaborador] | [Cargo]`;
+    }
+  }
+
+  function clearEmail() {
+    document.getElementById('email-subject').value = "";
+    document.getElementById('email-body').value = "";
+    document.getElementById('chk-review').checked = false;
+    document.getElementById('email-feedback').style.display = "none";
   }
 
   function sendEmail() {
-    const body = document.getElementById('email-body').value;
+    const subject = document.getElementById('email-subject').value.trim();
+    const body = document.getElementById('email-body').value.trim();
     const reviewed = document.getElementById('chk-review').checked;
     const fb = document.getElementById('email-feedback');
     fb.style.display = "block";
 
+    let errors = [];
     if (!reviewed) {
-      fb.style.background = "#fff3e0"; fb.style.color = "#e65100";
-      fb.innerText = "⚠️ Assinale a caixa de Revisão Ativa antes de enviar o e-mail.";
-      return;
+      errors.push("Assinale a caixa de Revisão Ativa antes de enviar o e-mail.");
     }
-    if (!body.includes("Luna") || !body.includes("29/12/2026") || !body.includes("03/01/2027")) {
+    if (subject.includes("[") || subject.includes("]") || body.includes("[") || body.includes("]")) {
+      errors.push("Ainda existem campos por preencher entre parênteses retos (ex: [Nome do Pet], [Nome do Tutor], [DD/MM/AAAA]).");
+    }
+    if (!subject.includes("Luna") || !subject.includes("Bem-vindos à família Happy Tails!")) {
+      errors.push("Verifique o Assunto: deve conter o título institucional e o nome 'Luna'.");
+    }
+    if (!body.includes("Catarina Mendes") || !body.includes("Luna") || !body.includes("14/12/2026")) {
+      errors.push("Verifique os dados no corpo do e-mail: 'Catarina Mendes', 'Luna' e a data '14/12/2026'.");
+    }
+    if (!body.includes("Maria Rita Reis")) {
+      errors.push("Inclua o seu nome completo ('Maria Rita Reis') e o cargo no fecho do e-mail.");
+    }
+
+    if (errors.length > 0) {
       fb.style.background = "#ffebee"; fb.style.color = "#c62828";
-      fb.innerText = "❌ O e-mail não menciona o nome da cadela (Luna) ou as datas exatas da reserva (29/12/2026 a 03/01/2027).";
+      fb.innerHTML = "⚠️ <strong>Corrija antes de enviar:</strong><ul>" + errors.map(e => `<li>${e}</li>`).join('') + "</ul>";
       return;
     }
 
     fb.style.background = "#e8f5e9"; fb.style.color = "#2e7d32";
-    fb.innerText = "✅ E-mail enviado com sucesso e validado sem erros de digitação!";
+    fb.innerText = "✅ E-mail de confirmação de inscrição enviado com sucesso e validado sem erros!";
     document.getElementById('rep-email').innerText = "Concluído";
   }
 </script>
